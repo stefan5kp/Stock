@@ -1,0 +1,43 @@
+{
+ "symbol": "AMZN",
+ "company": "Amazon.com, Inc.",
+ "as_of": "2026-10-14",
+ "generated": "2026-10-15 01:18",
+ "price": 254.08,
+ "change_pct": -1.74,
+ "ytd": 10.08,
+ "high52": 287.2,
+ "low52": 196.0,
+ "signal": "Buy",
+ "bulls": 3,
+ "bears": 1,
+ "rsi": 49.34,
+ "rsi_sig": "Neutral",
+ "macd_bull": true,
+ "ma50_bull": false,
+ "ma200_bull": true,
+ "boll_pos": "Middle",
+ "vol_now": 32.0,
+ "vol_lr": 40.2,
+ "cover30": 97.6,
+ "o30": {
+  "median": 256.83,
+  "chg": 1.08,
+  "lo": 207.35,
+  "hi": 315.94,
+  "p_up": 53.5,
+  "p_up10": 23.6,
+  "p_dn10": 16.7,
+  "p_high": 27.9
+ },
+ "o90": {
+  "median": 262.6,
+  "chg": 3.35,
+  "lo": 178.55,
+  "hi": 381.37,
+  "p_up": 55.8,
+  "p_up10": 39.3,
+  "p_dn10": 26.8,
+  "p_high": 57.1
+ }
+}

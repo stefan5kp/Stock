@@ -1,0 +1,43 @@
+{
+ "symbol": "COST",
+ "company": "Costco Wholesale Corporation",
+ "as_of": "2026-10-14",
+ "generated": "2026-10-15 01:18",
+ "price": 982.0,
+ "change_pct": 2.87,
+ "ytd": 14.38,
+ "high52": 1094.76,
+ "low52": 840.35,
+ "signal": "Buy",
+ "bulls": 3,
+ "bears": 2,
+ "rsi": 72.13,
+ "rsi_sig": "Overbought",
+ "macd_bull": true,
+ "ma50_bull": true,
+ "ma200_bull": true,
+ "boll_pos": "Upper",
+ "vol_now": 20.6,
+ "vol_lr": 23.3,
+ "cover30": 92.1,
+ "o30": {
+  "median": 995.96,
+  "chg": 1.42,
+  "lo": 879.24,
+  "hi": 1113.19,
+  "p_up": 57.6,
+  "p_up10": 11.9,
+  "p_dn10": 5.6,
+  "p_high": 12.5
+ },
+ "o90": {
+  "median": 1022.48,
+  "chg": 4.12,
+  "lo": 819.88,
+  "hi": 1251.05,
+  "p_up": 63.1,
+  "p_up10": 32.2,
+  "p_dn10": 12.9,
+  "p_high": 45.1
+ }
+}

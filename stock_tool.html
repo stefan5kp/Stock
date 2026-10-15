@@ -1,0 +1,426 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Stock Analyzer</title>
+<style>
+  :root {
+    --bg: #f6f7f9; --panel: #ffffff; --text: #1a1d23; --muted: #6b7280;
+    --border: #e3e6eb; --accent: #2563eb; --accent-text: #ffffff;
+    --chip: #eef1f5; --ok: #15803d; --err: #b91c1c; --log-bg: #0f172a; --log-text: #e2e8f0;
+    --bull: #15803d; --bear: #b91c1c; --bull-bg: #dcfce7; --bear-bg: #fee2e2; --neut-bg: #eef1f5;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0d1117; --panel: #161b22; --text: #e6edf3; --muted: #8b949e;
+      --border: #30363d; --accent: #3b82f6; --chip: #21262d; --ok: #3fb950; --err: #f85149;
+      --log-bg: #010409; --log-text: #c9d1d9;
+      --bull: #3fb950; --bear: #f85149; --bull-bg: #12361f; --bear-bg: #3d1517; --neut-bg: #21262d;
+    }
+  }
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  body { margin: 0; font: 14px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif;
+         background: var(--bg); color: var(--text); }
+  .app { display: grid; grid-template-columns: 300px 1fr; height: 100vh; }
+  aside { background: var(--panel); border-right: 1px solid var(--border); padding: 20px;
+          display: flex; flex-direction: column; gap: 18px; overflow-y: auto; }
+  h1 { font-size: 18px; margin: 0; }
+  h2 { font-size: 12px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); margin: 0 0 8px; }
+  form { display: flex; gap: 8px; }
+  input { flex: 1; min-width: 0; padding: 9px 12px; font: inherit; font-weight: 600; text-transform: uppercase;
+          border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text); }
+  input:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+  .btn { padding: 9px 16px; font: inherit; font-weight: 600; border: 0; border-radius: 8px;
+         background: var(--accent); color: var(--accent-text); cursor: pointer; white-space: nowrap; }
+  .btn.ghost { background: var(--chip); color: var(--text); border: 1px solid var(--border); font-weight: 500; }
+  .btn:disabled { opacity: .55; cursor: wait; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip { padding: 4px 10px; border-radius: 999px; border: 1px solid var(--border); background: var(--chip);
+          color: var(--text); font: inherit; font-size: 13px; cursor: pointer; }
+  .chip:hover { border-color: var(--accent); }
+  .saved { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+  .saved li { display: flex; justify-content: space-between; align-items: center; gap: 8px;
+              padding: 6px 8px; border-radius: 6px; cursor: pointer; }
+  .saved li:hover, .saved li.active { background: var(--chip); }
+  .saved .sym { font-weight: 600; }
+  .when { color: var(--muted); font-size: 12px; }
+  .icon { border: 0; background: none; color: var(--muted); cursor: pointer; font-size: 15px; padding: 0 4px; }
+  .icon:hover { color: var(--accent); }
+  .status { font-size: 13px; min-height: 20px; }
+  .status.ok { color: var(--ok); } .status.err { color: var(--err); }
+  details pre { background: var(--log-bg); color: var(--log-text); padding: 10px; border-radius: 8px;
+                font-size: 12px; white-space: pre-wrap; word-break: break-word; max-height: 260px; overflow: auto; }
+  summary { cursor: pointer; color: var(--muted); font-size: 13px; }
+
+  main { position: relative; display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+  .bar { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 8px 16px;
+         border-bottom: 1px solid var(--border); background: var(--panel); min-height: 49px; }
+  .tabs { display: flex; gap: 4px; background: var(--chip); padding: 3px; border-radius: 8px; }
+  .tabs button { border: 0; background: none; color: var(--muted); font: inherit; font-weight: 600;
+                 padding: 5px 14px; border-radius: 6px; cursor: pointer; }
+  .tabs button.on { background: var(--panel); color: var(--text); box-shadow: 0 1px 2px rgba(0,0,0,.12); }
+  .bar a { color: var(--accent); text-decoration: none; font-size: 13px; }
+  .bar .title { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .view { flex: 1; min-height: 0; display: flex; flex-direction: column; position: relative; }
+  iframe { flex: 1; min-height: 0; width: 100%; border: 0; background: var(--bg); }
+  .empty { position: absolute; inset: 0; display: grid; place-items: center; color: var(--muted); text-align: center; padding: 16px; }
+
+  /* Watchlist */
+  #watchView { overflow: auto; padding: 20px; gap: 14px; }
+  .wl-tools { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .wl-tools form { flex: 1 1 320px; }
+  .wl-note { color: var(--muted); font-size: 12px; margin: 0; }
+  .table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: 10px; background: var(--panel); flex-shrink: 0; }
+  table { border-collapse: collapse; width: 100%; font-size: 13px; font-variant-numeric: tabular-nums; }
+  th, td { padding: 8px 10px; text-align: right; white-space: nowrap; border-bottom: 1px solid var(--border); }
+  th { font-size: 11.5px; font-weight: 600; color: var(--muted); background: var(--panel); position: sticky; top: 0; }
+  th.sort { cursor: pointer; user-select: none; }
+  th.sort:hover { color: var(--text); }
+  th.group { text-align: center; text-transform: uppercase; letter-spacing: .05em; font-size: 10.5px; border-bottom: 0; }
+  th.gl, td.gl { border-left: 1px solid var(--border); }
+  th:first-child, td:first-child { text-align: left; }
+  tbody tr { cursor: pointer; }
+  tbody tr:hover td { background: var(--chip); }
+  tbody tr:last-child td { border-bottom: 0; }
+  td.sym b { display: block; }
+  td.sym span { color: var(--muted); font-size: 11.5px; display: block; max-width: 180px; overflow: hidden; text-overflow: ellipsis; }
+  .pos { color: var(--bull); } .neg { color: var(--bear); } .mut { color: var(--muted); }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 12px; font-weight: 600; }
+  .badge.bull { background: var(--bull-bg); color: var(--bull); }
+  .badge.bear { background: var(--bear-bg); color: var(--bear); }
+  .badge.neut { background: var(--neut-bg); color: var(--muted); }
+  .pbar { display: inline-flex; align-items: center; gap: 6px; }
+  .pbar i { display: inline-block; width: 36px; height: 4px; border-radius: 2px; background: var(--border); position: relative; overflow: hidden; }
+  .pbar i b { position: absolute; inset: 0 auto 0 0; background: var(--accent); }
+  td.act { text-align: center; }
+
+  .spinner { width: 14px; height: 14px; border: 2px solid var(--border); border-top-color: var(--accent);
+             border-radius: 50%; display: inline-block; vertical-align: -2px; margin-right: 6px; animation: spin .8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @media (max-width: 760px) {
+    .app { grid-template-columns: 1fr; height: auto; }
+    aside { border-right: 0; border-bottom: 1px solid var(--border); padding: 16px; }
+    main { height: 85vh; }
+    #watchView { padding: 16px; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <aside>
+    <h1>Stock Analyzer</h1>
+
+    <section>
+      <h2>Symbol</h2>
+      <form id="form">
+        <input id="symbol" list="suggest" placeholder="e.g. NVDA" autocomplete="off" spellcheck="false" required>
+        <button class="btn" id="runBtn" type="submit">Run</button>
+      </form>
+      <datalist id="suggest"></datalist>
+      <div class="status" id="status"></div>
+    </section>
+
+    <section>
+      <h2>Quick pick</h2>
+      <div class="chips" id="chips"></div>
+    </section>
+
+    <section>
+      <h2>Saved dashboards</h2>
+      <ul class="saved" id="saved"><li class="when">Loading…</li></ul>
+    </section>
+
+    <details id="logBox">
+      <summary>Analyzer output</summary>
+      <pre id="log">No runs yet.</pre>
+    </details>
+  </aside>
+
+  <main>
+    <div class="bar">
+      <div class="tabs">
+        <button id="tabDash" class="on" type="button">Dashboard</button>
+        <button id="tabWatch" type="button">Watchlist</button>
+      </div>
+      <span class="title" id="title"></span>
+      <a id="openTab" href="#" target="_blank" hidden>Open in new tab ↗</a>
+    </div>
+
+    <div class="view" id="dashView">
+      <iframe id="frame" title="Dashboard"></iframe>
+      <div class="empty" id="empty">Pick or type a symbol and press <b>Run</b>.<br>Fetching data and running the simulation takes ~10–30 seconds.</div>
+    </div>
+
+    <div class="view" id="watchView" hidden>
+      <div class="wl-tools">
+        <form id="addForm">
+          <input id="addInput" list="suggest" placeholder="Add symbols, e.g. AAPL, MSFT TSLA" autocomplete="off" spellcheck="false">
+          <button class="btn ghost" type="submit">Add</button>
+        </form>
+        <button class="btn" id="runStale" type="button" title="Run symbols with no result yet or not run today">Run missing / stale</button>
+        <button class="btn ghost" id="runAll" type="button">Run all</button>
+        <button class="btn ghost" id="exportCsv" type="button">Export CSV</button>
+      </div>
+      <p class="wl-note" id="wlNote"></p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th colspan="6"></th>
+              <th class="group gl" colspan="4">30-day forecast</th>
+              <th class="group gl" colspan="6">90-day forecast</th>
+              <th class="gl" colspan="2"></th>
+            </tr>
+            <tr id="headRow"></tr>
+          </thead>
+          <tbody id="wlBody"></tbody>
+        </table>
+      </div>
+      <p class="wl-note">Forecasts come from the GARCH(1,1) simulation in analyzer.py (10,000 paths, assumed 8%/yr drift). “Range” is the 5th–95th percentile price. Click a row to open its dashboard.</p>
+    </div>
+  </main>
+</div>
+
+<script>
+const QUICK = ["NVDA", "AAPL", "MSFT", "GOOGL", "AMZN", "META", "TSLA", "NFLX", "COST", "AMD", "SPY", "QQQ", "SMH", "^GSPC"];
+const $ = id => document.getElementById(id);
+const today = new Date().toLocaleDateString("en-CA");          // YYYY-MM-DD
+let busy = false, watch = [], summaries = {}, runningSym = null, sortKey = null, sortDir = -1;
+
+/* ---------- formatting ---------- */
+const money = v => v == null ? "—" : "$" + v.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const money0 = v => v == null ? "—" : "$" + Math.round(v).toLocaleString();
+const signed = (v, d = 1) => v == null ? "—" : `<span class="${v >= 0 ? "pos" : "neg"}">${v >= 0 ? "+" : ""}${v.toFixed(d)}%</span>`;
+const prob = v => v == null ? "—" : `<span class="pbar">${v.toFixed(0)}%<i><b style="width:${v}%"></b></i></span>`;
+const sigClass = s => s?.includes("Buy") ? "bull" : s?.includes("Sell") ? "bear" : "neut";
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+/* ---------- table columns: [label, sort value, cell html, csv value, group-left-border] ---------- */
+const COLS = [
+  ["Symbol",    s => s.symbol, (s, sym) => `<b>${esc(sym)}</b><span title="${esc(s?.company)}">${esc(s?.company ?? "not run yet")}</span>`, s => s.symbol],
+  ["Price",     s => s.price, s => money(s.price), s => s.price],
+  ["Day",       s => s.change_pct, s => signed(s.change_pct, 2), s => s.change_pct],
+  ["YTD",       s => s.ytd, s => signed(s.ytd), s => s.ytd],
+  ["Signal",    s => s.bulls - s.bears, s => `<span class="badge ${sigClass(s.signal)}">${esc(s.signal)}</span>`, s => s.signal],
+  ["RSI",       s => s.rsi, s => `<span class="${s.rsi > 70 ? "neg" : s.rsi < 30 ? "pos" : ""}">${s.rsi.toFixed(1)}</span>`, s => s.rsi],
+  ["Median",    s => s.o30.median, s => money(s.o30.median), s => s.o30.median, true],
+  ["Chg",       s => s.o30.chg, s => signed(s.o30.chg), s => s.o30.chg],
+  ["90% range", s => s.o30.hi - s.o30.lo, s => `${money0(s.o30.lo)} – ${money0(s.o30.hi)}`, s => `${s.o30.lo}-${s.o30.hi}`],
+  ["P(up)",     s => s.o30.p_up, s => prob(s.o30.p_up), s => s.o30.p_up],
+  ["Median",    s => s.o90.median, s => money(s.o90.median), s => s.o90.median, true],
+  ["Chg",       s => s.o90.chg, s => signed(s.o90.chg), s => s.o90.chg],
+  ["90% range", s => s.o90.hi - s.o90.lo, s => `${money0(s.o90.lo)} – ${money0(s.o90.hi)}`, s => `${s.o90.lo}-${s.o90.hi}`],
+  ["P(up)",     s => s.o90.p_up, s => prob(s.o90.p_up), s => s.o90.p_up],
+  ["P(≥+10%)",  s => s.o90.p_up10, s => prob(s.o90.p_up10), s => s.o90.p_up10],
+  ["P(≤−10%)",  s => s.o90.p_dn10, s => prob(s.o90.p_dn10), s => s.o90.p_dn10],
+  ["Vol (ann.)",s => s.vol_now, s => `${s.vol_now.toFixed(0)}%<span class="mut"> / ${s.vol_lr.toFixed(0)}%</span>`, s => s.vol_now, true],
+  ["As of",     s => s.as_of, s => `<span class="${s.as_of === today || s.generated?.startsWith(today) ? "" : "mut"}">${esc(s.as_of)}</span>`, s => s.as_of],
+];
+
+/* ---------- shared UI ---------- */
+function setStatus(text, cls = "", spin = false) {
+  $("status").className = "status " + cls;
+  $("status").innerHTML = (spin ? '<span class="spinner"></span>' : "") + text;
+}
+
+function setView(v) {
+  $("dashView").hidden = v !== "dash";
+  $("watchView").hidden = v !== "watch";
+  $("tabDash").classList.toggle("on", v === "dash");
+  $("tabWatch").classList.toggle("on", v === "watch");
+  $("title").hidden = $("openTab").hidden = v !== "dash" || !$("frame").src;
+  if (v === "watch") renderTable();
+}
+
+function show(symbol, file) {
+  const src = "/dashboards/" + encodeURIComponent(file) + "?t=" + Date.now();
+  $("frame").src = src;
+  $("empty").hidden = true;
+  $("title").textContent = symbol + " dashboard";
+  $("openTab").href = src;
+  document.querySelectorAll("#saved li").forEach(li => li.classList.toggle("active", li.dataset.sym === symbol));
+  setView("dash");
+}
+
+let dashboards = [];
+async function refreshList() {
+  dashboards = await (await fetch("/api/list")).json();
+  const ul = $("saved");
+  ul.innerHTML = "";
+  if (!dashboards.length) ul.innerHTML = '<li class="when">None yet</li>';
+  for (const d of dashboards) {
+    const li = document.createElement("li");
+    li.dataset.sym = d.symbol;
+    li.innerHTML = `<span><span class="sym"></span> <span class="when"></span></span>
+                    <span><button class="icon add" title="Add to watchlist">＋</button><button class="icon rerun" title="Re-run with fresh data">↻</button></span>`;
+    li.querySelector(".sym").textContent = d.symbol;
+    li.querySelector(".when").textContent = d.updated;
+    li.onclick = () => show(d.symbol, d.file);
+    li.querySelector(".rerun").onclick = e => { e.stopPropagation(); runAndShow(d.symbol); };
+    li.querySelector(".add").onclick = e => { e.stopPropagation(); addSymbols([d.symbol]); setView("watch"); };
+    ul.appendChild(li);
+  }
+  const names = new Set([...QUICK, ...dashboards.map(d => d.symbol), ...watch]);
+  $("suggest").innerHTML = [...names].map(s => `<option value="${esc(s)}">`).join("");
+  return dashboards;
+}
+
+/* ---------- running the analyzer ---------- */
+async function runOne(symbol) {
+  runningSym = symbol;
+  renderTable();
+  try {
+    const r = await (await fetch("/api/run?symbol=" + encodeURIComponent(symbol), { method: "POST" })).json();
+    $("log").textContent = r.log || "(no output)";
+    if (r.ok && r.summary) summaries[symbol] = r.summary;
+    return r;
+  } catch (e) {
+    return { ok: false, log: "Can't reach the server. Is server.py still running?" };
+  } finally {
+    runningSym = null;
+    renderTable();
+  }
+}
+
+function lock(on) {
+  busy = on;
+  ["runBtn", "runAll", "runStale"].forEach(id => $(id).disabled = on);
+}
+
+async function runAndShow(symbol) {
+  symbol = symbol.trim().toUpperCase();
+  if (!symbol || busy) return;
+  lock(true);
+  $("symbol").value = symbol;
+  setStatus(`Analyzing ${symbol}…`, "", true);
+  const t0 = performance.now();
+  const r = await runOne(symbol);
+  const secs = ((performance.now() - t0) / 1000).toFixed(1);
+  if (r.ok) {
+    setStatus(`✓ ${symbol} done in ${secs}s`, "ok");
+    await refreshList();
+    show(symbol, r.file);
+  } else {
+    setStatus(`✗ ${symbol} failed — see output below`, "err");
+    $("logBox").open = true;
+  }
+  lock(false);
+}
+
+async function runBatch(symbols) {
+  if (busy || !symbols.length) return;
+  lock(true);
+  const failed = [];
+  for (const [k, sym] of symbols.entries()) {
+    setStatus(`Watchlist: ${sym} (${k + 1}/${symbols.length})…`, "", true);
+    const r = await runOne(sym);
+    if (!r.ok) failed.push(sym);
+  }
+  await refreshList();
+  if (failed.length) { setStatus(`✗ Failed: ${failed.join(", ")} — see output below`, "err"); $("logBox").open = true; }
+  else setStatus(`✓ Updated ${symbols.length} symbol${symbols.length > 1 ? "s" : ""}`, "ok");
+  lock(false);
+}
+
+/* ---------- watchlist ---------- */
+async function saveWatch(list) {
+  const r = await (await fetch("/api/watchlist", { method: "POST", body: JSON.stringify(list) })).json();
+  watch = r.symbols; summaries = r.summaries;
+  renderTable();
+}
+
+function addSymbols(syms) {
+  const add = syms.map(s => s.trim().toUpperCase()).filter(s => /^[A-Z0-9.\-^=]{1,15}$/.test(s));
+  if (add.length) saveWatch([...watch, ...add]);
+}
+
+const isStale = sym => { const s = summaries[sym]; return !s || !s.generated?.startsWith(today); };
+
+function renderTable() {
+  $("headRow").innerHTML = COLS.map(([label, , , , gl], k) =>
+    `<th class="sort${gl ? " gl" : ""}" data-k="${k}">${label}${sortKey === k ? (sortDir > 0 ? " ▲" : " ▼") : ""}</th>`).join("") +
+    `<th class="gl"></th>`;
+  $("headRow").querySelectorAll("th.sort").forEach(th => th.onclick = () => {
+    const k = +th.dataset.k;
+    sortDir = sortKey === k ? -sortDir : (k === 0 ? 1 : -1);
+    sortKey = k;
+    renderTable();
+  });
+
+  let rows = [...watch];
+  if (sortKey != null) {
+    const val = sym => summaries[sym] ? COLS[sortKey][1](summaries[sym]) : null;
+    rows.sort((a, b) => {
+      const va = val(a), vb = val(b);
+      if (va == null) return 1; if (vb == null) return -1;
+      return (va > vb ? 1 : va < vb ? -1 : 0) * sortDir;
+    });
+  }
+
+  const body = $("wlBody");
+  body.innerHTML = rows.length ? "" : `<tr><td colspan="${COLS.length + 1}" class="mut" style="text-align:center;padding:24px">Add symbols above to build your watchlist.</td></tr>`;
+  for (const sym of rows) {
+    const s = summaries[sym], tr = document.createElement("tr");
+    const cells = COLS.map(([, , cell, , gl], k) => {
+      const cls = (k === 0 ? "sym" : "") + (gl ? " gl" : "");
+      if (k === 0) return `<td class="${cls}">${cell(s, sym)}</td>`;
+      if (!s) return k === 1 ? `<td colspan="${COLS.length - 1}" class="mut" style="text-align:left">${runningSym === sym ? '<span class="spinner"></span>Running…' : "No results yet — press ↻ to run"}</td>` : "";
+      return `<td class="${cls}">${cell(s)}</td>`;
+    }).join("");
+    const spin = runningSym === sym && s ? '<span class="spinner"></span>' : "";
+    tr.innerHTML = cells + `<td class="act gl">${spin}<button class="icon run" title="Run / refresh">↻</button><button class="icon del" title="Remove">✕</button></td>`;
+    tr.onclick = () => { const d = dashboards.find(d => d.symbol === sym); if (d) show(sym, d.file); };
+    tr.querySelector(".run").onclick = e => { e.stopPropagation(); runBatch([sym]); };
+    tr.querySelector(".del").onclick = e => { e.stopPropagation(); saveWatch(watch.filter(x => x !== sym)); };
+    body.appendChild(tr);
+  }
+  const stale = watch.filter(isStale).length;
+  $("wlNote").textContent = `${watch.length} symbol${watch.length === 1 ? "" : "s"}` +
+    (stale ? ` · ${stale} not run today` : " · all up to date") + " · each run takes ~10–30 s";
+}
+
+function exportCsv() {
+  const head = ["Symbol", "Company", "Price", "Day %", "YTD %", "Signal", "RSI",
+    "30d median", "30d chg %", "30d 90% range", "30d P(up) %",
+    "90d median", "90d chg %", "90d 90% range", "90d P(up) %", "90d P(+10%) %", "90d P(-10%) %",
+    "Vol now %", "As of"];
+  const lines = [head];
+  for (const sym of watch) {
+    const s = summaries[sym];
+    if (!s) { lines.push([sym]); continue; }
+    lines.push([sym, s.company, ...COLS.slice(1).map(c => c[3](s))]);
+  }
+  const csv = lines.map(r => r.map(v => `"${String(v ?? "").replace(/"/g, '""')}"`).join(",")).join("\r\n");
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
+  a.download = `watchlist_${today}.csv`;
+  a.click();
+}
+
+/* ---------- wiring ---------- */
+$("form").onsubmit = e => { e.preventDefault(); runAndShow($("symbol").value); };
+$("chips").innerHTML = QUICK.map(s => `<button class="chip" type="button">${s}</button>`).join("");
+$("chips").querySelectorAll(".chip").forEach(b => b.onclick = () => runAndShow(b.textContent));
+$("tabDash").onclick = () => setView("dash");
+$("tabWatch").onclick = () => setView("watch");
+$("addForm").onsubmit = e => { e.preventDefault(); addSymbols($("addInput").value.split(/[\s,;]+/)); $("addInput").value = ""; };
+$("runAll").onclick = () => runBatch([...watch]);
+$("runStale").onclick = () => runBatch(watch.filter(isStale));
+$("exportCsv").onclick = exportCsv;
+
+(async () => {
+  try {
+    const wl = await (await fetch("/api/watchlist")).json();
+    watch = wl.symbols; summaries = wl.summaries;
+    const list = await refreshList();
+    if (list.length) show(list[0].symbol, list[0].file);
+    renderTable();
+  } catch {
+    setStatus("✗ Open this page through server.py (http://127.0.0.1:8765), not as a file.", "err");
+  }
+})();
+</script>
+</body>
+</html>

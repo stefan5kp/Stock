@@ -1,0 +1,43 @@
+{
+ "symbol": "META",
+ "company": "Meta Platforms, Inc.",
+ "as_of": "2026-10-14",
+ "generated": "2026-10-15 01:18",
+ "price": 737.54,
+ "change_pct": -3.27,
+ "ytd": 12.02,
+ "high52": 779.82,
+ "low52": 519.37,
+ "signal": "Buy",
+ "bulls": 3,
+ "bears": 1,
+ "rsi": 58.13,
+ "rsi_sig": "Neutral",
+ "macd_bull": false,
+ "ma50_bull": true,
+ "ma200_bull": true,
+ "boll_pos": "Middle",
+ "vol_now": 46.2,
+ "vol_lr": 48.8,
+ "cover30": 97.6,
+ "o30": {
+  "median": 752.26,
+  "chg": 2.0,
+  "lo": 580.74,
+  "hi": 969.85,
+  "p_up": 55.7,
+  "p_up10": 29.4,
+  "p_dn10": 18.9,
+  "p_high": 62.4
+ },
+ "o90": {
+  "median": 779.21,
+  "chg": 5.65,
+  "lo": 485.23,
+  "hi": 1218.59,
+  "p_up": 58.9,
+  "p_up10": 44.3,
+  "p_dn10": 26.7,
+  "p_high": 81.1
+ }
+}

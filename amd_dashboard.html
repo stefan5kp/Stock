@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AMD Dashboard</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{--bg:#0a0e1a;--surface:#111827;--surface2:#162036;--border:#1f2a40;--grid:#1a2438;--accent:#76b900;--accent2:#00d4aa;
+  --text:#e8edf5;--text2:#b4bfd3;--muted:#8b97b0;--red:#ef4444;--green:#22c55e;
+  --t-bull:rgba(34,197,94,.14);--t-bear:rgba(239,68,68,.14);--t-neut:rgba(139,151,176,.14);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;background:var(--bg);color:var(--text);min-height:100vh;-webkit-font-smoothing:antialiased;}
+.bull{color:var(--green);} .bear{color:var(--red);} .neut{color:var(--muted);} .accent{color:var(--accent);}
+
+header{background:var(--surface);border-bottom:1px solid var(--border);padding:14px 24px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+.brand{display:flex;align-items:center;gap:10px;}
+.dot{width:9px;height:9px;border-radius:50%;background:var(--accent);box-shadow:0 0 8px var(--accent);}
+.brand-name{font-size:15px;font-weight:700;} .brand-sub{font-size:11px;color:var(--muted);}
+.hdr-right{display:flex;align-items:center;gap:12px;}
+.gen{font-size:11px;color:var(--muted);}
+.badge{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;padding:5px 12px;border-radius:20px;}
+.badge.bull{background:var(--t-bull);} .badge.bear{background:var(--t-bear);} .badge.neut{background:var(--t-neut);color:var(--text2);}
+.badge small{font-size:9px;}
+
+main{max-width:1120px;margin:0 auto;padding:28px 20px 40px;}
+.hero{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:24px;}
+.price-row{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:8px;}
+.price-main{font-size:52px;font-weight:800;letter-spacing:-.03em;line-height:1;}
+.price-chip{font-size:16px;font-weight:600;padding:5px 10px;border-radius:6px;}
+.price-chip.bull{background:var(--t-bull);} .price-chip.bear{background:var(--t-bear);}
+.price-meta{font-size:13px;color:var(--muted);} .price-meta b{color:var(--text2);font-weight:600;}
+.src{font-size:11px;color:var(--muted);text-align:right;line-height:1.7;}
+
+.stat-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:32px;}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px;}
+.stat-lbl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px;}
+.stat-val{font-size:20px;font-weight:700;letter-spacing:-.02em;}
+
+.section{margin-bottom:32px;}
+.sec-hd{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px;flex-wrap:wrap;}
+.sec-title{font-size:15px;font-weight:600;}
+.sec-badge{font-size:11px;color:var(--muted);background:var(--surface2);padding:3px 9px;border-radius:12px;}
+.chart-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px 20px 14px;}
+.chart-wrap{position:relative;height:320px;} .chart-wrap.sm{height:190px;}
+.legend{display:flex;gap:18px;font-size:12px;color:var(--text2);margin-bottom:12px;flex-wrap:wrap;}
+.legend span{display:inline-flex;align-items:center;gap:7px;}
+.legend i{display:inline-block;width:18px;border-top:2px solid;}
+.legend i.dash{border-top-style:dashed;}
+.legend i.box{width:12px;height:10px;border:0;border-radius:2px;}
+.legend .meta{margin-left:auto;color:var(--muted);} .legend .meta b{color:var(--text2);font-weight:600;}
+.card-cap{font-size:12px;color:var(--text2);margin-bottom:10px;}
+
+.signals-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;}
+.sig-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px;display:flex;align-items:center;gap:12px;}
+.pip{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0;}
+.pip.bull{background:var(--t-bull);} .pip.bear{background:var(--t-bear);} .pip.neut{background:var(--t-neut);}
+.sig-name{font-size:11px;color:var(--muted);margin-bottom:2px;}
+.sig-val{font-size:14px;font-weight:600;} .sig-val.neut{color:var(--text2);}
+
+.two-col{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px;align-items:start;}
+.pred-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px;margin-bottom:12px;}
+.pred-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;}
+.pred-lbl{font-size:11px;color:var(--muted);margin-bottom:8px;display:flex;justify-content:space-between;gap:6px;}
+.tag{color:var(--accent2);}
+.pred-price{font-size:26px;font-weight:800;letter-spacing:-.02em;}
+.pred-chg{font-size:13px;font-weight:600;margin:2px 0 12px;}
+.conf-lbl{font-size:10px;color:var(--muted);display:flex;justify-content:space-between;margin-bottom:4px;}
+.conf-track{height:4px;background:var(--border);border-radius:2px;overflow:hidden;}
+.conf-fill{height:100%;border-radius:2px;background:var(--accent2);}
+.pred-range{font-size:12px;color:var(--muted);margin-bottom:12px;} .pred-range b{color:var(--text2);font-weight:600;}
+.prob-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:6px 18px;margin-bottom:12px;}
+.prob{width:100%;border-collapse:collapse;font-size:13px;}
+.prob th{font-size:10px;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;text-align:right;padding:10px 0 8px;}
+.prob th:first-child,.prob td:first-child{text-align:left;}
+.prob td{padding:9px 0;border-top:1px solid var(--border);text-align:right;color:var(--text2);font-variant-numeric:tabular-nums;}
+.prob td:not(:first-child){color:var(--text);font-weight:600;width:22%;}
+.analysis-box{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px 22px;font-size:13.5px;line-height:1.75;color:var(--text2);}
+.analysis-box p{margin-bottom:12px;} .analysis-box p:last-child{margin-bottom:0;} .analysis-box strong{color:var(--text);}
+.disclaimer{margin-top:32px;padding:14px 16px;border:1px solid var(--border);border-radius:8px;font-size:11.5px;color:var(--muted);line-height:1.6;}
+.disclaimer strong{color:var(--text2);}
+
+@media(max-width:860px){.signals-grid{grid-template-columns:repeat(2,minmax(0,1fr));} .two-col{grid-template-columns:1fr;}}
+@media(max-width:640px){
+  main{padding:20px 16px 32px;} header{padding:12px 16px;}
+  .stat-grid{grid-template-columns:repeat(2,minmax(0,1fr));} .signals-grid{grid-template-columns:1fr;}
+  .price-main{font-size:42px;} .src{text-align:left;} .gen{display:none;}
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand"><div class="dot"></div>
+    <div><div class="brand-name">AMD · NASDAQ</div><div class="brand-sub">Advanced Micro Devices, Inc.</div></div>
+  </div>
+  <div class="hdr-right">
+    <span class="gen">Generated Oct 15, 2026 01:18</span>
+    <span class="badge bull"><small>▲</small>Buy</span>
+  </div>
+</header>
+
+<main>
+<div class="hero">
+  <div>
+    <div class="price-row">
+      <div class="price-main">$570.82</div>
+      <div class="price-chip bear">-34.71 (-5.73%)</div>
+    </div>
+    <div class="price-meta">Prev close <b>$605.53</b> &nbsp;·&nbsp; 52w high <b>$658.52</b> &nbsp;·&nbsp; 52w low <b>$188.22</b></div>
+  </div>
+  <div class="src">Yahoo Finance via yfinance · 251 trading days<br>Re-run the script to refresh</div>
+</div>
+
+<div class="stat-grid">
+  <div class="stat-card"><div class="stat-lbl">Market Cap</div><div class="stat-val accent">$931.85B</div></div>
+  <div class="stat-card"><div class="stat-lbl">P/E Ratio</div><div class="stat-val ">145.6x</div></div>
+  <div class="stat-card"><div class="stat-lbl">EPS (TTM)</div><div class="stat-val ">$3.92</div></div>
+  <div class="stat-card"><div class="stat-lbl">Beta</div><div class="stat-val ">2.45</div></div>
+  <div class="stat-card"><div class="stat-lbl">RSI (14)</div><div class="stat-val ">46.5</div></div>
+  <div class="stat-card"><div class="stat-lbl">MA 50</div><div class="stat-val ">$535</div></div>
+  <div class="stat-card"><div class="stat-lbl">MA 200</div><div class="stat-val ">$391</div></div>
+  <div class="stat-card"><div class="stat-lbl">Avg Volume</div><div class="stat-val ">22.9M</div></div>
+</div>
+
+<div class="section">
+  <div class="sec-hd">
+    <div class="sec-title">Price History &amp; 30-Day Forecast</div>
+    <div class="sec-badge">Last 90 sessions + 30-session simulation</div>
+  </div>
+  <div class="chart-card">
+    <div class="legend">
+      <span><i style="border-color:var(--accent)"></i>Close</span>
+      <span><i class="dash" style="border-color:var(--accent2)"></i>Median forecast</span>
+      <span><i class="box" style="background:rgba(0,212,170,.30)"></i>50% range</span>
+      <span><i class="box" style="background:rgba(0,212,170,.13)"></i>90% range</span>
+    </div>
+    <div class="chart-wrap"><canvas id="priceChart"></canvas></div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="sec-hd">
+    <div class="sec-title">Year to Date</div>
+    <div class="sec-badge">2026 YTD <span class="bull">+166.5%</span></div>
+  </div>
+  <div class="chart-card">
+    <div class="legend">
+      <span><i style="border-color:var(--accent)"></i>Close</span>
+      <span><i class="dash" style="border-color:var(--muted)"></i>Start of year $214.16</span>
+      <span class="meta">High <b>$649.42</b> (10-06) &nbsp;·&nbsp; Low <b>$190.95</b> (03-03)</span>
+    </div>
+    <div class="chart-wrap"><canvas id="ytdChart"></canvas></div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="sec-hd">
+    <div class="sec-title">Technical Indicators</div>
+    <div class="sec-badge">Overall: <span class="bull">Buy</span></div>
+  </div>
+  <div class="signals-grid">
+    <div class="sig-card"><span class="pip neut">●</span><div><div class="sig-name">RSI (14)</div><div class="sig-val neut">46.5 · Neutral</div></div></div>
+    <div class="sig-card"><span class="pip bear">▼</span><div><div class="sig-name">MACD vs Signal</div><div class="sig-val bear">Bearish (-8.88)</div></div></div>
+    <div class="sig-card"><span class="pip bull">▲</span><div><div class="sig-name">Price vs MA50</div><div class="sig-val bull">Above $535</div></div></div>
+    <div class="sig-card"><span class="pip bull">▲</span><div><div class="sig-name">Price vs MA200</div><div class="sig-val bull">Above $391</div></div></div>
+    <div class="sig-card"><span class="pip neut">●</span><div><div class="sig-name">Bollinger Band</div><div class="sig-val neut">Middle Band</div></div></div>
+    <div class="sig-card"><span class="pip neut">●</span><div><div class="sig-name">30-Day 90% Range</div><div class="sig-val neut">$417 – $793</div></div></div>
+  </div>
+</div>
+
+<div class="two-col">
+  <div>
+    <div class="sec-hd"><div class="sec-title">Price Outlook</div><div class="sec-badge">GARCH(1,1) Monte Carlo · 10,000 paths</div></div>
+    <div class="pred-grid">
+      <div class="pred-card">
+        <div class="pred-lbl"><span>30-Day Outlook</span><span class="tag">Short-term</span></div>
+        <div class="pred-price">$574.77</div>
+        <div class="pred-chg bull">+0.7% median</div>
+        <div class="pred-range">90% range <b>$417 – $793</b></div>
+        <div class="conf-lbl"><span>Chance of finishing higher</span><span>51%</span></div>
+        <div class="conf-track"><div class="conf-fill" style="width:51%"></div></div>
+      </div>
+      <div class="pred-card">
+        <div class="pred-lbl"><span>90-Day Outlook</span><span class="tag">Mid-term</span></div>
+        <div class="pred-price">$582.53</div>
+        <div class="pred-chg bull">+2.1% median</div>
+        <div class="pred-range">90% range <b>$336 – $1011</b></div>
+        <div class="conf-lbl"><span>Chance of finishing higher</span><span>53%</span></div>
+        <div class="conf-track"><div class="conf-fill" style="width:53%"></div></div>
+      </div>
+    </div>
+    <div class="prob-card">
+      <table class="prob">
+        <thead><tr><th>Probability</th><th>30 days</th><th>90 days</th></tr></thead>
+        <tbody>
+          <tr><td>Finish higher</td><td>51%</td><td>53%</td></tr>
+          <tr><td>Gain 10% or more</td><td>32%</td><td>41%</td></tr>
+          <tr><td>Lose 10% or more</td><td>28%</td><td>36%</td></tr>
+          <tr><td>Touch 52w high ($659)</td><td>40%</td><td>64%</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="chart-card">
+      <div class="card-cap">Daily % change · last 60 sessions</div>
+      <div class="chart-wrap sm"><canvas id="dailyChart"></canvas></div>
+    </div>
+  </div>
+  <div>
+    <div class="sec-hd"><div class="sec-title">Technical Analysis</div><div class="sec-badge">Computed from real data</div></div>
+    <div class="analysis-box">
+      <p>AMD is trading at <strong>$570.82</strong>, down <strong>5.73%</strong> from the prior session. Based on 251 trading days of real data, the stock is above both its 50-day MA (<strong>$535</strong>) and 200-day MA (<strong>$391</strong>) — a bullish golden-cross structure.</p>
+      <p>The <strong>RSI of 46.5</strong> signals neutral momentum. MACD is <strong>bearish</strong> (-8.88 vs signal). Price is at the <strong>Middle Bollinger Band</strong> — normal range.</p>
+      <p>A <strong>GARCH(1,1)</strong> model fit to 1,253 daily returns puts current volatility at <strong>57%</strong> annualized (long-run 57%). Across 10,000 simulated paths the 30-day median is <strong>$574.77</strong> (90% range $417–$793), with a <strong>51%</strong> chance of finishing higher. In an in-sample backtest, <strong>91%</strong> of past 30-day moves fell inside the model's 90% band.</p>
+      <p>The stock is at <strong>81%</strong> of its 52-week range ($188–$659). Overall technical signal: <strong class="bull">Buy</strong>.</p>
+    </div>
+  </div>
+</div>
+
+<div class="disclaimer"><strong>Disclaimer:</strong> Data sourced from Yahoo Finance via yfinance. All indicators and forecasts are computed locally from historical prices. The simulation assumes 8% annual drift; its probabilities describe the model, not the market. For educational purposes only — not financial advice. Consult a licensed financial advisor before investing.</div>
+</main>
+
+<script>
+const DATES  = ["2025-10-15", "2025-10-16", "2025-10-17", "2025-10-20", "2025-10-21", "2025-10-22", "2025-10-23", "2025-10-24", "2025-10-27", "2025-10-28", "2025-10-29", "2025-10-30", "2025-10-31", "2025-11-03", "2025-11-04", "2025-11-05", "2025-11-06", "2025-11-07", "2025-11-10", "2025-11-11", "2025-11-12", "2025-11-13", "2025-11-14", "2025-11-17", "2025-11-18", "2025-11-19", "2025-11-20", "2025-11-21", "2025-11-24", "2025-11-25", "2025-11-26", "2025-11-28", "2025-12-01", "2025-12-02", "2025-12-03", "2025-12-04", "2025-12-05", "2025-12-08", "2025-12-09", "2025-12-10", "2025-12-11", "2025-12-12", "2025-12-15", "2025-12-16", "2025-12-17", "2025-12-18", "2025-12-19", "2025-12-22", "2025-12-23", "2025-12-24", "2025-12-26", "2025-12-29", "2025-12-30", "2025-12-31", "2026-01-02", "2026-01-05", "2026-01-06", "2026-01-07", "2026-01-08", "2026-01-09", "2026-01-12", "2026-01-13", "2026-01-14", "2026-01-15", "2026-01-16", "2026-01-20", "2026-01-21", "2026-01-22", "2026-01-23", "2026-01-26", "2026-01-27", "2026-01-28", "2026-01-29", "2026-01-30", "2026-02-02", "2026-02-03", "2026-02-04", "2026-02-05", "2026-02-06", "2026-02-09", "2026-02-10", "2026-02-11", "2026-02-12", "2026-02-13", "2026-02-17", "2026-02-18", "2026-02-19", "2026-02-20", "2026-02-23", "2026-02-24", "2026-02-25", "2026-02-26", "2026-02-27", "2026-03-02", "2026-03-03", "2026-03-04", "2026-03-05", "2026-03-06", "2026-03-09", "2026-03-10", "2026-03-11", "2026-03-12", "2026-03-13", "2026-03-16", "2026-03-17", "2026-03-18", "2026-03-19", "2026-03-20", "2026-03-23", "2026-03-24", "2026-03-25", "2026-03-26", "2026-03-27", "2026-03-30", "2026-03-31", "2026-04-01", "2026-04-02", "2026-04-06", "2026-04-07", "2026-04-08", "2026-04-09", "2026-04-10", "2026-04-13", "2026-04-14", "2026-04-15", "2026-04-16", "2026-04-17", "2026-04-20", "2026-04-21", "2026-04-22", "2026-04-23", "2026-04-24", "2026-04-27", "2026-04-28", "2026-04-29", "2026-04-30", "2026-05-01", "2026-05-04", "2026-05-05", "2026-05-06", "2026-05-07", "2026-05-08", "2026-05-11", "2026-05-12", "2026-05-13", "2026-05-14", "2026-05-15", "2026-05-18", "2026-05-19", "2026-05-20", "2026-05-21", "2026-05-22", "2026-05-26", "2026-05-27", "2026-05-28", "2026-05-29", "2026-06-01", "2026-06-02", "2026-06-03", "2026-06-04", "2026-06-05", "2026-06-08", "2026-06-09", "2026-06-10", "2026-06-11", "2026-06-12", "2026-06-15", "2026-06-16", "2026-06-17", "2026-06-18", "2026-06-22", "2026-06-23", "2026-06-24", "2026-06-25", "2026-06-26", "2026-06-29", "2026-06-30", "2026-07-01", "2026-07-02", "2026-07-06", "2026-07-07", "2026-07-08", "2026-07-09", "2026-07-10", "2026-07-13", "2026-07-14", "2026-07-15", "2026-07-16", "2026-07-17", "2026-07-20", "2026-07-21", "2026-07-22", "2026-07-23", "2026-07-24", "2026-07-27", "2026-07-28", "2026-07-29", "2026-07-30", "2026-07-31", "2026-08-03", "2026-08-04", "2026-08-05", "2026-08-06", "2026-08-07", "2026-08-10", "2026-08-11", "2026-08-12", "2026-08-13", "2026-08-14", "2026-08-17", "2026-08-18", "2026-08-19", "2026-08-20", "2026-08-21", "2026-08-24", "2026-08-25", "2026-08-26", "2026-08-27", "2026-08-28", "2026-08-31", "2026-09-01", "2026-09-02", "2026-09-03", "2026-09-04", "2026-09-08", "2026-09-09", "2026-09-10", "2026-09-11", "2026-09-14", "2026-09-15", "2026-09-16", "2026-09-17", "2026-09-18", "2026-09-21", "2026-09-22", "2026-09-23", "2026-09-24", "2026-09-25", "2026-09-28", "2026-09-29", "2026-09-30", "2026-10-01", "2026-10-02", "2026-10-05", "2026-10-06", "2026-10-07", "2026-10-08", "2026-10-09", "2026-10-12", "2026-10-13", "2026-10-14"];
+const CLOSES = [238.6, 234.56, 233.08, 240.56, 238.03, 230.23, 234.99, 252.92, 259.67, 258.01, 264.33, 254.84, 256.12, 259.65, 250.05, 256.33, 237.7, 233.54, 243.98, 237.52, 258.89, 247.96, 246.81, 240.52, 230.29, 223.55, 206.02, 203.78, 215.05, 206.13, 214.24, 217.53, 219.76, 215.24, 217.6, 215.98, 217.97, 221.11, 221.62, 221.42, 221.43, 210.78, 207.58, 209.17, 198.11, 201.06, 213.43, 214.95, 214.9, 215.04, 214.99, 215.61, 215.34, 214.16, 223.47, 221.08, 214.35, 210.02, 204.68, 203.17, 207.69, 220.97, 223.6, 227.92, 231.83, 231.92, 249.8, 253.73, 259.68, 251.31, 252.03, 252.74, 252.18, 236.73, 246.27, 242.11, 200.19, 192.5, 208.44, 216.0, 213.57, 213.58, 205.94, 207.32, 203.08, 200.12, 203.37, 200.15, 196.6, 213.84, 210.86, 203.68, 200.21, 198.62, 190.95, 202.07, 199.45, 192.43, 202.68, 203.23, 204.83, 197.74, 193.39, 196.58, 196.31, 199.46, 205.27, 201.33, 202.68, 205.37, 220.27, 203.77, 201.99, 196.04, 203.43, 210.21, 217.5, 220.18, 221.53, 231.82, 236.64, 245.04, 246.83, 255.07, 258.12, 278.26, 278.39, 274.95, 284.49, 303.46, 305.33, 347.81, 334.63, 323.21, 337.11, 354.49, 360.54, 341.54, 355.26, 421.39, 408.46, 455.19, 458.79, 448.29, 445.5, 449.7, 424.1, 420.99, 414.05, 447.58, 449.59, 467.51, 503.89, 495.54, 518.09, 516.1, 510.13, 521.54, 542.52, 523.2, 466.38, 490.33, 475.51, 452.4, 488.45, 511.57, 547.26, 507.29, 512.48, 537.37, 551.63, 519.85, 519.74, 532.57, 521.58, 539.49, 580.91, 540.88, 517.82, 552.05, 516.11, 517.41, 546.72, 557.89, 534.39, 548.13, 529.14, 500.94, 495.76, 503.57, 544.43, 552.33, 539.69, 521.95, 494.95, 454.62, 429.56, 485.39, 476.15, 484.64, 518.58, 482.05, 489.28, 483.36, 469.56, 474.32, 482.93, 483.01, 514.39, 506.0, 484.39, 466.42, 469.46, 473.25, 456.75, 479.18, 480.93, 476.67, 465.58, 470.72, 459.61, 457.06, 456.16, 477.57, 505.74, 521.1, 503.6, 516.13, 493.41, 504.2, 512.5, 545.09, 559.82, 615.52, 623.77, 614.61, 629.26, 630.63, 607.87, 607.57, 611.76, 615.73, 633.91, 631.75, 649.42, 645.86, 620.68, 608.1, 594.24, 605.53, 570.82];
+const BANDS  = {"5": [570.82, 538.86, 528.11, 518.5, 510.64, 503.9, 496.6, 491.12, 486.67, 480.83, 476.33, 470.44, 466.67, 463.42, 459.76, 456.45, 452.52, 448.54, 446.73, 443.86, 440.55, 438.51, 436.25, 432.51, 430.01, 426.48, 424.38, 422.22, 421.19, 418.14, 416.68, 414.9, 413.07, 410.81, 408.72, 406.35, 403.67, 402.03, 399.03, 398.59, 395.71, 393.97, 391.32, 389.89, 387.45, 387.45, 386.41, 384.79, 383.06, 382.18, 379.08, 377.38, 375.83, 373.85, 374.02, 372.56, 371.99, 370.44, 369.67, 369.11, 369.18, 367.43, 366.77, 363.9, 364.65, 363.76, 361.37, 360.37, 357.76, 359.46, 357.74, 356.2, 355.23, 353.58, 352.66, 351.73, 350.29, 349.17, 348.79, 346.56, 347.24, 346.31, 344.56, 342.73, 341.85, 340.37, 338.5, 338.08, 337.77, 337.08, 335.78], "25": [570.82, 559.25, 554.23, 550.41, 546.92, 544.3, 541.82, 539.11, 536.28, 534.58, 532.58, 530.58, 527.82, 526.26, 524.18, 523.24, 521.28, 520.5, 518.71, 516.25, 515.38, 514.77, 513.53, 512.89, 511.6, 510.13, 509.18, 508.02, 506.12, 505.95, 504.63, 504.11, 503.0, 502.09, 500.76, 498.61, 498.85, 497.66, 496.95, 495.9, 495.07, 493.35, 493.62, 493.48, 493.39, 492.0, 490.88, 490.93, 489.9, 489.57, 487.81, 487.03, 486.65, 484.69, 484.65, 484.36, 483.25, 482.76, 482.35, 482.23, 481.54, 479.68, 479.92, 479.27, 478.86, 477.66, 478.05, 476.93, 476.42, 476.41, 475.51, 473.24, 473.22, 472.89, 471.84, 471.29, 472.33, 471.45, 470.9, 470.17, 470.13, 469.71, 468.81, 468.1, 467.54, 466.66, 465.29, 465.71, 465.4, 466.3, 465.52], "50": [570.82, 570.54, 570.86, 571.32, 571.51, 571.93, 572.34, 571.76, 571.32, 571.7, 571.39, 571.16, 572.47, 572.35, 572.67, 572.37, 571.93, 572.3, 572.26, 572.66, 573.04, 572.91, 574.15, 573.95, 573.83, 574.09, 574.16, 573.65, 572.86, 573.19, 574.77, 574.4, 574.59, 575.32, 575.34, 574.72, 574.0, 574.84, 574.76, 574.64, 574.5, 574.28, 575.92, 575.31, 575.83, 576.0, 575.96, 574.66, 574.23, 575.86, 574.89, 574.95, 574.51, 575.09, 574.69, 574.92, 575.91, 577.21, 577.01, 575.79, 576.14, 575.89, 575.81, 576.69, 576.3, 578.13, 577.85, 576.54, 577.07, 577.13, 576.75, 577.29, 577.75, 577.32, 577.64, 578.83, 579.71, 579.86, 579.57, 580.22, 580.57, 581.12, 580.69, 581.38, 581.35, 581.48, 581.8, 581.96, 581.92, 582.88, 582.53], "75": [570.82, 583.01, 588.37, 593.31, 596.87, 600.68, 603.81, 606.09, 608.55, 610.73, 614.0, 616.46, 618.98, 620.94, 622.93, 625.24, 626.2, 628.38, 631.63, 633.48, 635.6, 638.24, 640.8, 642.13, 643.82, 645.37, 646.6, 648.56, 651.27, 651.6, 652.76, 653.9, 655.86, 658.56, 659.77, 660.85, 663.47, 665.24, 665.25, 666.66, 668.91, 668.99, 671.09, 673.67, 673.4, 674.33, 676.56, 676.84, 677.44, 678.6, 680.85, 682.39, 685.42, 686.55, 687.17, 688.79, 688.8, 689.41, 689.86, 692.05, 692.56, 695.17, 696.92, 698.69, 699.28, 699.14, 701.25, 702.54, 704.53, 704.59, 705.51, 706.92, 707.09, 708.24, 709.51, 711.04, 712.52, 713.2, 715.71, 714.74, 715.25, 715.79, 719.1, 721.65, 723.01, 724.13, 725.0, 727.63, 730.93, 731.55, 731.55], "95": [570.82, 603.34, 617.92, 631.38, 641.84, 651.97, 658.72, 668.21, 674.61, 681.1, 687.86, 693.73, 698.41, 705.34, 711.49, 719.03, 725.67, 728.24, 734.7, 739.12, 745.96, 748.85, 758.09, 762.06, 763.54, 768.32, 775.62, 780.23, 782.96, 786.61, 793.42, 797.29, 801.21, 804.44, 810.69, 814.06, 816.71, 820.67, 826.3, 829.28, 837.86, 839.05, 842.18, 846.84, 853.37, 861.75, 862.77, 865.45, 866.55, 871.96, 876.55, 880.81, 882.07, 886.67, 895.12, 897.92, 898.96, 899.01, 905.55, 905.89, 908.36, 910.88, 918.46, 921.59, 926.26, 927.51, 934.59, 933.73, 936.7, 938.98, 945.67, 946.88, 953.33, 956.28, 962.3, 963.08, 972.44, 978.83, 979.76, 978.67, 985.72, 986.64, 986.79, 992.56, 991.93, 998.58, 1004.29, 1004.88, 1008.91, 1009.66, 1010.88]};
+const FDATES = ["2026-10-15", "2026-10-16", "2026-10-19", "2026-10-20", "2026-10-21", "2026-10-22", "2026-10-23", "2026-10-26", "2026-10-27", "2026-10-28", "2026-10-29", "2026-10-30", "2026-11-02", "2026-11-03", "2026-11-04", "2026-11-05", "2026-11-06", "2026-11-09", "2026-11-10", "2026-11-11", "2026-11-12", "2026-11-13", "2026-11-16", "2026-11-17", "2026-11-18", "2026-11-19", "2026-11-20", "2026-11-23", "2026-11-24", "2026-11-25", "2026-11-26", "2026-11-27", "2026-11-30", "2026-12-01", "2026-12-02", "2026-12-03", "2026-12-04", "2026-12-07", "2026-12-08", "2026-12-09", "2026-12-10", "2026-12-11", "2026-12-14", "2026-12-15", "2026-12-16", "2026-12-17", "2026-12-18", "2026-12-21", "2026-12-22", "2026-12-23", "2026-12-24", "2026-12-25", "2026-12-28", "2026-12-29", "2026-12-30", "2026-12-31", "2027-01-01", "2027-01-04", "2027-01-05", "2027-01-06", "2027-01-07", "2027-01-08", "2027-01-11", "2027-01-12", "2027-01-13", "2027-01-14", "2027-01-15", "2027-01-18", "2027-01-19", "2027-01-20", "2027-01-21", "2027-01-22", "2027-01-25", "2027-01-26", "2027-01-27", "2027-01-28", "2027-01-29", "2027-02-01", "2027-02-02", "2027-02-03", "2027-02-04", "2027-02-05", "2027-02-08", "2027-02-09", "2027-02-10", "2027-02-11", "2027-02-12", "2027-02-15", "2027-02-16", "2027-02-17"];
+const DAILY  = [0, -1.69, -0.63, 3.21, -1.05, -3.28, 2.07, 7.63, 2.67, -0.64, 2.45, -3.59, 0.5, 1.38, -3.7, 2.51, -7.27, -1.75, 4.47, -2.65, 9.0, -4.22, -0.46, -2.55, -4.25, -2.93, -7.84, -1.09, 5.53, -4.15, 3.93, 1.54, 1.03, -2.06, 1.1, -0.74, 0.92, 1.44, 0.23, -0.09, 0.0, -4.81, -1.52, 0.77, -5.29, 1.49, 6.15, 0.71, -0.02, 0.07, -0.02, 0.29, -0.13, -0.55, 4.35, -1.07, -3.04, -2.02, -2.54, -0.74, 2.22, 6.39, 1.19, 1.93, 1.72, 0.04, 7.71, 1.57, 2.35, -3.22, 0.29, 0.28, -0.22, -6.13, 4.03, -1.69, -17.31, -3.84, 8.28, 3.63, -1.13, 0.0, -3.58, 0.67, -2.05, -1.46, 1.62, -1.58, -1.77, 8.77, -1.39, -3.41, -1.7, -0.79, -3.86, 5.82, -1.3, -3.52, 5.33, 0.27, 0.79, -3.46, -2.2, 1.65, -0.14, 1.6, 2.91, -1.92, 0.67, 1.33, 7.26, -7.49, -0.87, -2.95, 3.77, 3.33, 3.47, 1.23, 0.61, 4.64, 2.08, 3.55, 0.73, 3.34, 1.2, 7.8, 0.05, -1.24, 3.47, 6.67, 0.62, 13.91, -3.79, -3.41, 4.3, 5.16, 1.71, -5.27, 4.02, 18.61, -3.07, 11.44, 0.79, -2.29, -0.62, 0.94, -5.69, -0.73, -1.65, 8.1, 0.45, 3.99, 7.78, -1.66, 4.55, -0.38, -1.16, 2.24, 4.02, -3.56, -10.86, 5.14, -3.02, -4.86, 7.97, 4.73, 6.98, -7.3, 1.02, 4.86, 2.65, -5.76, -0.02, 2.47, -2.06, 3.43, 7.68, -6.89, -4.26, 6.61, -6.51, 0.25, 5.66, 2.04, -4.21, 2.57, -3.46, -5.33, -1.03, 1.58, 8.11, 1.45, -2.29, -3.29, -5.17, -8.15, -5.51, 13.0, -1.9, 1.78, 7.0, -7.04, 1.5, -1.21, -2.86, 1.01, 1.82, 0.02, 6.5, -1.63, -4.27, -3.71, 0.65, 0.81, -3.49, 4.91, 0.37, -0.89, -2.33, 1.1, -2.36, -0.55, -0.2, 4.69, 5.9, 3.04, -3.36, 2.49, -4.4, 2.19, 1.65, 6.36, 2.7, 9.95, 1.34, -1.47, 2.38, 0.22, -3.61, -0.05, 0.69, 0.65, 2.95, -0.34, 2.8, -0.55, -3.9, -2.03, -2.28, 1.9, -5.73];
+const YTD_DATES  = ["2025-12-31", "2026-01-02", "2026-01-05", "2026-01-06", "2026-01-07", "2026-01-08", "2026-01-09", "2026-01-12", "2026-01-13", "2026-01-14", "2026-01-15", "2026-01-16", "2026-01-20", "2026-01-21", "2026-01-22", "2026-01-23", "2026-01-26", "2026-01-27", "2026-01-28", "2026-01-29", "2026-01-30", "2026-02-02", "2026-02-03", "2026-02-04", "2026-02-05", "2026-02-06", "2026-02-09", "2026-02-10", "2026-02-11", "2026-02-12", "2026-02-13", "2026-02-17", "2026-02-18", "2026-02-19", "2026-02-20", "2026-02-23", "2026-02-24", "2026-02-25", "2026-02-26", "2026-02-27", "2026-03-02", "2026-03-03", "2026-03-04", "2026-03-05", "2026-03-06", "2026-03-09", "2026-03-10", "2026-03-11", "2026-03-12", "2026-03-13", "2026-03-16", "2026-03-17", "2026-03-18", "2026-03-19", "2026-03-20", "2026-03-23", "2026-03-24", "2026-03-25", "2026-03-26", "2026-03-27", "2026-03-30", "2026-03-31", "2026-04-01", "2026-04-02", "2026-04-06", "2026-04-07", "2026-04-08", "2026-04-09", "2026-04-10", "2026-04-13", "2026-04-14", "2026-04-15", "2026-04-16", "2026-04-17", "2026-04-20", "2026-04-21", "2026-04-22", "2026-04-23", "2026-04-24", "2026-04-27", "2026-04-28", "2026-04-29", "2026-04-30", "2026-05-01", "2026-05-04", "2026-05-05", "2026-05-06", "2026-05-07", "2026-05-08", "2026-05-11", "2026-05-12", "2026-05-13", "2026-05-14", "2026-05-15", "2026-05-18", "2026-05-19", "2026-05-20", "2026-05-21", "2026-05-22", "2026-05-26", "2026-05-27", "2026-05-28", "2026-05-29", "2026-06-01", "2026-06-02", "2026-06-03", "2026-06-04", "2026-06-05", "2026-06-08", "2026-06-09", "2026-06-10", "2026-06-11", "2026-06-12", "2026-06-15", "2026-06-16", "2026-06-17", "2026-06-18", "2026-06-22", "2026-06-23", "2026-06-24", "2026-06-25", "2026-06-26", "2026-06-29", "2026-06-30", "2026-07-01", "2026-07-02", "2026-07-06", "2026-07-07", "2026-07-08", "2026-07-09", "2026-07-10", "2026-07-13", "2026-07-14", "2026-07-15", "2026-07-16", "2026-07-17", "2026-07-20", "2026-07-21", "2026-07-22", "2026-07-23", "2026-07-24", "2026-07-27", "2026-07-28", "2026-07-29", "2026-07-30", "2026-07-31", "2026-08-03", "2026-08-04", "2026-08-05", "2026-08-06", "2026-08-07", "2026-08-10", "2026-08-11", "2026-08-12", "2026-08-13", "2026-08-14", "2026-08-17", "2026-08-18", "2026-08-19", "2026-08-20", "2026-08-21", "2026-08-24", "2026-08-25", "2026-08-26", "2026-08-27", "2026-08-28", "2026-08-31", "2026-09-01", "2026-09-02", "2026-09-03", "2026-09-04", "2026-09-08", "2026-09-09", "2026-09-10", "2026-09-11", "2026-09-14", "2026-09-15", "2026-09-16", "2026-09-17", "2026-09-18", "2026-09-21", "2026-09-22", "2026-09-23", "2026-09-24", "2026-09-25", "2026-09-28", "2026-09-29", "2026-09-30", "2026-10-01", "2026-10-02", "2026-10-05", "2026-10-06", "2026-10-07", "2026-10-08", "2026-10-09", "2026-10-12", "2026-10-13", "2026-10-14"];
+const YTD_CLOSES = [214.16, 223.47, 221.08, 214.35, 210.02, 204.68, 203.17, 207.69, 220.97, 223.6, 227.92, 231.83, 231.92, 249.8, 253.73, 259.68, 251.31, 252.03, 252.74, 252.18, 236.73, 246.27, 242.11, 200.19, 192.5, 208.44, 216.0, 213.57, 213.58, 205.94, 207.32, 203.08, 200.12, 203.37, 200.15, 196.6, 213.84, 210.86, 203.68, 200.21, 198.62, 190.95, 202.07, 199.45, 192.43, 202.68, 203.23, 204.83, 197.74, 193.39, 196.58, 196.31, 199.46, 205.27, 201.33, 202.68, 205.37, 220.27, 203.77, 201.99, 196.04, 203.43, 210.21, 217.5, 220.18, 221.53, 231.82, 236.64, 245.04, 246.83, 255.07, 258.12, 278.26, 278.39, 274.95, 284.49, 303.46, 305.33, 347.81, 334.63, 323.21, 337.11, 354.49, 360.54, 341.54, 355.26, 421.39, 408.46, 455.19, 458.79, 448.29, 445.5, 449.7, 424.1, 420.99, 414.05, 447.58, 449.59, 467.51, 503.89, 495.54, 518.09, 516.1, 510.13, 521.54, 542.52, 523.2, 466.38, 490.33, 475.51, 452.4, 488.45, 511.57, 547.26, 507.29, 512.48, 537.37, 551.63, 519.85, 519.74, 532.57, 521.58, 539.49, 580.91, 540.88, 517.82, 552.05, 516.11, 517.41, 546.72, 557.89, 534.39, 548.13, 529.14, 500.94, 495.76, 503.57, 544.43, 552.33, 539.69, 521.95, 494.95, 454.62, 429.56, 485.39, 476.15, 484.64, 518.58, 482.05, 489.28, 483.36, 469.56, 474.32, 482.93, 483.01, 514.39, 506.0, 484.39, 466.42, 469.46, 473.25, 456.75, 479.18, 480.93, 476.67, 465.58, 470.72, 459.61, 457.06, 456.16, 477.57, 505.74, 521.1, 503.6, 516.13, 493.41, 504.2, 512.5, 545.09, 559.82, 615.52, 623.77, 614.61, 629.26, 630.63, 607.87, 607.57, 611.76, 615.73, 633.91, 631.75, 649.42, 645.86, 620.68, 608.1, 594.24, 605.53, 570.82];
+
+const C = {text:'#e8edf5', text2:'#b4bfd3', muted:'#8b97b0', grid:'#1a2438', surface:'#111827',
+           border:'#2a3854', accent:'#76b900', accent2:'#00d4aa', green:'#22c55e', red:'#ef4444'};
+const MON  = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const fmtD = s => { const [y, m, d] = s.split('-'); return MON[+m-1] + ' ' + (+d); };
+Chart.defaults.font.family = 'system-ui,-apple-system,"Segoe UI",sans-serif';
+Chart.defaults.color = C.muted;
+const TIP = {backgroundColor:C.surface, borderColor:C.border, borderWidth:1, titleColor:C.text,
+             bodyColor:C.text2, padding:10, cornerRadius:8, displayColors:false};
+const dateTicks = {maxRotation:0, autoSkip:true, font:{size:11},
+                   callback: function(v) { return fmtD(this.getLabelForValue(v)); }};
+// Vertical gradient sized to the plot area, not a fixed pixel height
+const hover = col => ({pointRadius:0, pointHoverRadius:5, pointHoverBackgroundColor:col,
+                        pointHoverBorderColor:C.surface, pointHoverBorderWidth:2});
+const fade = (hex, a) => c => {
+  const {ctx, chartArea} = c.chart;
+  if (!chartArea) return 'transparent';
+  const g = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+  g.addColorStop(0, hex + a); g.addColorStop(1, hex + '00');
+  return g;
+};
+
+(function() {
+  const d90 = DATES.slice(-90), c90 = CLOSES.slice(-90), last = c90.length - 1;
+  const H = 30;   // chart shows the first 30 sessions; 90-day bands would flatten the history
+  // Bands start at the last close so they fan out from today
+  const band = p => [...new Array(last).fill(null), ...BANDS[p].slice(0, H + 1)];
+  const area = (label, p, fill, color) => ({label, data:band(p), fill, backgroundColor:color,
+    borderWidth:0, pointRadius:0, pointHoverRadius:0, tension:0.2});
+  const todayLine = {id:'today', beforeDatasetsDraw(ch) {
+    const x = ch.scales.x.getPixelForValue(last), {top, bottom} = ch.chartArea, g = ch.ctx;
+    g.save(); g.strokeStyle = C.border; g.lineWidth = 1; g.setLineDash([2, 3]);
+    g.beginPath(); g.moveTo(x, top); g.lineTo(x, bottom); g.stroke(); g.restore();
+  }};
+  new Chart(document.getElementById('priceChart'), {
+    type: 'line',
+    plugins: [todayLine],
+    data: {
+      labels: [...d90, ...FDATES.slice(0, H)],
+      datasets: [
+        {label:'Close', data:c90, borderColor:C.accent, backgroundColor:fade(C.accent, '33'),
+          borderWidth:2, fill:'start', tension:0.25, ...hover(C.accent)},
+        area('p5',  '5',  false, 'transparent'),
+        area('p95', '95', '-1',  C.accent2 + '21'),
+        area('p25', '25', false, 'transparent'),
+        area('p75', '75', '-1',  C.accent2 + '3d'),
+        {label:'Median', data:band('50'), borderColor:C.accent2, borderWidth:2, borderDash:[6, 4],
+          fill:false, tension:0.2, ...hover(C.accent2)}
+      ]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      interaction:{mode:'index', intersect:false},
+      plugins: {
+        legend:{display:false},
+        tooltip:{...TIP,
+          filter: i => i.raw != null && (i.datasetIndex === 0 || (i.datasetIndex === 5 && i.dataIndex > last)),
+          callbacks:{title: i => fmtD(i[0].label), label: c => {
+            if (c.datasetIndex === 0) return `Close: $${c.raw.toFixed(2)}`;
+            const k = c.dataIndex - last, r = (lo, hi) => `$${BANDS[lo][k].toFixed(0)} – $${BANDS[hi][k].toFixed(0)}`;
+            return [`Median: $${c.raw.toFixed(2)}`, `50% range: ${r('25', '75')}`, `90% range: ${r('5', '95')}`];
+          }}}
+      },
+      scales: {
+        x:{grid:{display:false}, border:{color:C.border}, ticks:{...dateTicks, maxTicksLimit:8}},
+        y:{grid:{color:C.grid}, border:{display:false}, ticks:{font:{size:11}, callback: v => '$' + v}}
+      }
+    }
+  });
+})();
+
+(function() {
+  const base = YTD_CLOSES[0];
+  // Dashed reference line at the start-of-year price
+  const baseline = {id:'baseline', beforeDatasetsDraw(ch) {
+    const y = ch.scales.y.getPixelForValue(base), {left, right} = ch.chartArea, g = ch.ctx;
+    g.save(); g.strokeStyle = C.muted; g.globalAlpha = 0.6; g.lineWidth = 1; g.setLineDash([4, 4]);
+    g.beginPath(); g.moveTo(left, y); g.lineTo(right, y); g.stroke(); g.restore();
+  }};
+  new Chart(document.getElementById('ytdChart'), {
+    type: 'line',
+    plugins: [baseline],
+    data: {
+      labels: YTD_DATES,
+      datasets: [{label:'Close', data:YTD_CLOSES, borderColor:C.accent, borderWidth:2, tension:0.25,
+                   fill:{target:{value:base}, above:C.green + '24', below:C.red + '24'}, ...hover(C.accent)}]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      interaction:{mode:'index', intersect:false},
+      plugins: {
+        legend:{display:false},
+        tooltip:{...TIP, callbacks:{title: i => fmtD(i[0].label), label: c => {
+          const pct = (c.raw / base - 1) * 100;
+          return [`Close: $${c.raw.toFixed(2)}`, `YTD: ${pct >= 0 ? '+' : ''}${pct.toFixed(1)}%`];
+        }}}
+      },
+      scales: {
+        x:{grid:{display:false}, border:{color:C.border}, ticks:{...dateTicks, maxTicksLimit:10}},
+        y:{grid:{color:C.grid}, border:{display:false}, ticks:{font:{size:11}, callback: v => '$' + v}}
+      }
+    }
+  });
+})();
+
+(function() {
+  const d60 = DATES.slice(-60), chg60 = DAILY.slice(-60);
+  new Chart(document.getElementById('dailyChart'), {
+    type: 'bar',
+    data: {
+      labels: d60,
+      datasets: [{data:chg60, backgroundColor: chg60.map(v => v >= 0 ? C.green + 'cc' : C.red + 'cc'),
+                   borderRadius:2, borderSkipped:false, barPercentage:0.75, categoryPercentage:0.9}]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      plugins: {
+        legend:{display:false},
+        tooltip:{...TIP, callbacks:{title: i => fmtD(i[0].label),
+                                     label: c => (c.raw >= 0 ? '+' : '') + c.raw.toFixed(2) + '%'}}
+      },
+      scales: {
+        x:{grid:{display:false}, border:{color:C.border}, ticks:{...dateTicks, maxTicksLimit:6}},
+        y:{grid:{color:C.grid}, border:{display:false}, ticks:{font:{size:11}, callback: v => v + '%'}}
+      }
+    }
+  });
+})();
+</script>
+</body>
+</html>

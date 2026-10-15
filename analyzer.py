@@ -656,6 +656,25 @@ out = f"{SYMBOL.lower()}_dashboard.html"
 with open(out, "w", encoding="utf-8") as f:
     f.write(html)
 
+def pct(v): return round((v - price) / price * 100, 2)
+def horizon(o): return {"median": round(o["median"], 2), "chg": pct(o["median"]),
+                        "lo": round(o["lo"], 2), "hi": round(o["hi"], 2),
+                        **{k: round(o[k], 1) for k in ("p_up", "p_up10", "p_dn10", "p_high")}}
+summary = {
+    "symbol": SYMBOL, "company": company, "as_of": dates[-1],
+    "generated": datetime.now().strftime("%Y-%m-%d %H:%M"),
+    "price": price, "change_pct": change_pct, "ytd": round(ytd_ret, 2),
+    "high52": high52, "low52": low52,
+    "signal": overall, "bulls": bulls, "bears": bears,
+    "rsi": rsi_val, "rsi_sig": rsi_sig, "macd_bull": bool(macd_bull),
+    "ma50_bull": ma50_bull, "ma200_bull": ma200_bull, "boll_pos": boll_pos,
+    "vol_now": round(vol_now, 1), "vol_lr": round(vol_lr, 1), "cover30": round(cover30, 1),
+    "o30": horizon(o30), "o90": horizon(o90),
+}
+with open(f"{SYMBOL.lower()}_summary.json", "w", encoding="utf-8") as f:
+    json.dump(summary, f, indent=1)
+
 print(f"\n✓ Saved: {os.path.abspath(out)}")
-print("  Opening in browser...")
-webbrowser.open(f"file://{os.path.abspath(out)}")
+if not os.environ.get("ANALYZER_NO_BROWSER"):   # set by server.py (web tool)
+    print("  Opening in browser...")
+    webbrowser.open(f"file://{os.path.abspath(out)}")

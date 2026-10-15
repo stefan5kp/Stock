@@ -1,0 +1,43 @@
+{
+ "symbol": "AMD",
+ "company": "Advanced Micro Devices, Inc.",
+ "as_of": "2026-10-14",
+ "generated": "2026-10-15 01:18",
+ "price": 570.82,
+ "change_pct": -5.73,
+ "ytd": 166.54,
+ "high52": 658.52,
+ "low52": 188.22,
+ "signal": "Buy",
+ "bulls": 3,
+ "bears": 1,
+ "rsi": 46.5,
+ "rsi_sig": "Neutral",
+ "macd_bull": false,
+ "ma50_bull": true,
+ "ma200_bull": true,
+ "boll_pos": "Middle",
+ "vol_now": 56.6,
+ "vol_lr": 57.1,
+ "cover30": 91.2,
+ "o30": {
+  "median": 574.77,
+  "chg": 0.69,
+  "lo": 416.68,
+  "hi": 793.42,
+  "p_up": 51.4,
+  "p_up10": 32.1,
+  "p_dn10": 28.2,
+  "p_high": 40.0
+ },
+ "o90": {
+  "median": 582.53,
+  "chg": 2.05,
+  "lo": 335.78,
+  "hi": 1010.88,
+  "p_up": 52.6,
+  "p_up10": 41.0,
+  "p_dn10": 35.6,
+  "p_high": 63.7
+ }
+}

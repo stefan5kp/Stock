@@ -1,0 +1,43 @@
+{
+ "symbol": "MSFT",
+ "company": "Microsoft Corporation",
+ "as_of": "2026-10-14",
+ "generated": "2026-10-15 01:17",
+ "price": 533.69,
+ "change_pct": -1.8,
+ "ytd": 11.05,
+ "high52": 551.15,
+ "low52": 348.54,
+ "signal": "Strong Buy",
+ "bulls": 4,
+ "bears": 0,
+ "rsi": 62.49,
+ "rsi_sig": "Neutral",
+ "macd_bull": true,
+ "ma50_bull": true,
+ "ma200_bull": true,
+ "boll_pos": "Middle",
+ "vol_now": 26.9,
+ "vol_lr": 29.4,
+ "cover30": 90.0,
+ "o30": {
+  "median": 537.75,
+  "chg": 0.76,
+  "lo": 462.6,
+  "hi": 625.75,
+  "p_up": 53.6,
+  "p_up10": 16.0,
+  "p_dn10": 10.6,
+  "p_high": 64.7
+ },
+ "o90": {
+  "median": 545.93,
+  "chg": 2.29,
+  "lo": 418.66,
+  "hi": 712.42,
+  "p_up": 56.4,
+  "p_up10": 31.9,
+  "p_dn10": 20.5,
+  "p_high": 81.3
+ }
+}

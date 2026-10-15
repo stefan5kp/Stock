@@ -1,0 +1,43 @@
+{
+ "symbol": "NFLX",
+ "company": "Netflix, Inc.",
+ "as_of": "2026-10-14",
+ "generated": "2026-10-15 01:18",
+ "price": 70.57,
+ "change_pct": 0.16,
+ "ytd": -24.73,
+ "high52": 124.86,
+ "low52": 65.08,
+ "signal": "Hold",
+ "bulls": 2,
+ "bears": 2,
+ "rsi": 44.86,
+ "rsi_sig": "Neutral",
+ "macd_bull": true,
+ "ma50_bull": false,
+ "ma200_bull": false,
+ "boll_pos": "Middle",
+ "vol_now": 37.0,
+ "vol_lr": 41.2,
+ "cover30": 93.7,
+ "o30": {
+  "median": 71.56,
+  "chg": 1.4,
+  "lo": 57.38,
+  "hi": 86.78,
+  "p_up": 54.8,
+  "p_up10": 24.0,
+  "p_dn10": 15.8,
+  "p_high": 0.1
+ },
+ "o90": {
+  "median": 73.46,
+  "chg": 4.1,
+  "lo": 49.75,
+  "hi": 102.78,
+  "p_up": 58.1,
+  "p_up10": 39.4,
+  "p_dn10": 24.6,
+  "p_high": 1.0
+ }
+}
