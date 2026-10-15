@@ -114,6 +114,18 @@ class Handler(BaseHTTPRequestHandler):
                 return self._json({"ok": False, "log": "Expected a JSON list of symbols"}, 400)
             wl = save_watchlist(symbols)
             return self._json({"symbols": wl, "summaries": load_summaries(wl)})
+        if url.path == "/api/delete":
+            symbol = (parse_qs(url.query).get("symbol", [""])[0]).strip().upper()
+            if not SYMBOL_RE.match(symbol):
+                return self._json({"ok": False, "log": f"Invalid symbol: {symbol!r}"}, 400)
+            removed = []
+            for f in (f"{symbol.lower()}_dashboard.html", f"{symbol.lower()}_summary.json"):
+                path = os.path.join(HERE, f)
+                if os.path.exists(path):
+                    os.remove(path)
+                    removed.append(f)
+            print(f"  deleted: {', '.join(removed) or 'nothing'}")
+            return self._json({"ok": bool(removed), "removed": removed})
         if url.path != "/api/run":
             return self._send(404, "Not found", "text/plain")
         symbol = (parse_qs(url.query).get("symbol", [""])[0]).strip().upper()

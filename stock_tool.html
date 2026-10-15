@@ -254,17 +254,39 @@ async function refreshList() {
     const li = document.createElement("li");
     li.dataset.sym = d.symbol;
     li.innerHTML = `<span><span class="sym"></span> <span class="when"></span></span>
-                    <span><button class="icon add" title="Add to watchlist">＋</button><button class="icon rerun" title="Re-run with fresh data">↻</button></span>`;
+                    <span><button class="icon add" title="Add to watchlist">＋</button><button class="icon rerun" title="Re-run with fresh data">↻</button><button class="icon del" title="Delete this dashboard">🗑</button></span>`;
     li.querySelector(".sym").textContent = d.symbol;
     li.querySelector(".when").textContent = d.updated;
     li.onclick = () => show(d.symbol, d.file);
     li.querySelector(".rerun").onclick = e => { e.stopPropagation(); runAndShow(d.symbol); };
     li.querySelector(".add").onclick = e => { e.stopPropagation(); addSymbols([d.symbol]); setView("watch"); };
+    li.querySelector(".del").onclick = e => { e.stopPropagation(); deleteDashboard(d.symbol); };
     ul.appendChild(li);
   }
   const names = new Set([...QUICK, ...dashboards.map(d => d.symbol), ...watch]);
   $("suggest").innerHTML = [...names].map(s => `<option value="${esc(s)}">`).join("");
   return dashboards;
+}
+
+async function deleteDashboard(symbol) {
+  if (busy) return;
+  if (!confirm(`Delete the saved ${symbol} dashboard?\n(It stays in your watchlist; you can re-run it anytime.)`)) return;
+  try {
+    const r = await (await fetch("/api/delete?symbol=" + encodeURIComponent(symbol), { method: "POST" })).json();
+    if (!r.ok) return setStatus(`✗ Nothing to delete for ${symbol}`, "err");
+    delete summaries[symbol];
+    if ($("title").textContent === symbol + " dashboard") {     // it was on screen: clear the viewer
+      $("frame").removeAttribute("src");
+      $("empty").hidden = false;
+      $("title").textContent = "";
+      $("title").hidden = $("openTab").hidden = true;
+    }
+    setStatus(`✓ Deleted ${symbol} dashboard`, "ok");
+    await refreshList();
+    renderTable();
+  } catch {
+    setStatus("✗ Can't reach the server. Is server.py still running?", "err");
+  }
 }
 
 /* ---------- running the analyzer ---------- */

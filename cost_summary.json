@@ -2,7 +2,7 @@
  "symbol": "COST",
  "company": "Costco Wholesale Corporation",
  "as_of": "2026-10-14",
- "generated": "2026-10-15 01:18",
+ "generated": "2026-10-15 01:20",
  "price": 982.0,
  "change_pct": 2.87,
  "ytd": 14.38,
@@ -25,7 +25,7 @@
   "chg": 1.42,
   "lo": 879.24,
   "hi": 1113.19,
-  "p_up": 57.6,
+  "p_up": 57.7,
   "p_up10": 11.9,
   "p_dn10": 5.6,
   "p_high": 12.5

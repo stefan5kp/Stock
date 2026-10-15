@@ -2,7 +2,7 @@
  "symbol": "SMH",
  "company": "VanEck Semiconductor ETF",
  "as_of": "2026-10-14",
- "generated": "2026-10-15 01:18",
+ "generated": "2026-10-15 01:20",
  "price": 564.74,
  "change_pct": -3.98,
  "ytd": 56.82,
@@ -21,7 +21,7 @@
  "vol_lr": 37.4,
  "cover30": 94.0,
  "o30": {
-  "median": 571.26,
+  "median": 571.25,
   "chg": 1.15,
   "lo": 462.79,
   "hi": 689.83,

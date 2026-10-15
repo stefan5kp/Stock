@@ -2,7 +2,7 @@
  "symbol": "META",
  "company": "Meta Platforms, Inc.",
  "as_of": "2026-10-14",
- "generated": "2026-10-15 01:18",
+ "generated": "2026-10-15 01:20",
  "price": 737.54,
  "change_pct": -3.27,
  "ytd": 12.02,
@@ -23,7 +23,7 @@
  "o30": {
   "median": 752.26,
   "chg": 2.0,
-  "lo": 580.74,
+  "lo": 580.75,
   "hi": 969.85,
   "p_up": 55.7,
   "p_up10": 29.4,

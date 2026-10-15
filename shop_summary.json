@@ -1,0 +1,43 @@
+{
+ "symbol": "SHOP",
+ "company": "Shopify Inc.",
+ "as_of": "2026-10-14",
+ "generated": "2026-10-15 01:26",
+ "price": 172.5,
+ "change_pct": -2.28,
+ "ytd": 7.16,
+ "high52": 182.19,
+ "low52": 94.0,
+ "signal": "Buy",
+ "bulls": 3,
+ "bears": 1,
+ "rsi": 67.74,
+ "rsi_sig": "Neutral",
+ "macd_bull": true,
+ "ma50_bull": true,
+ "ma200_bull": true,
+ "boll_pos": "Middle",
+ "vol_now": 59.1,
+ "vol_lr": 66.8,
+ "cover30": 96.7,
+ "o30": {
+  "median": 175.37,
+  "chg": 1.66,
+  "lo": 123.75,
+  "hi": 252.84,
+  "p_up": 53.1,
+  "p_up10": 35.0,
+  "p_dn10": 27.3,
+  "p_high": 71.1
+ },
+ "o90": {
+  "median": 181.47,
+  "chg": 5.2,
+  "lo": 96.85,
+  "hi": 346.53,
+  "p_up": 55.8,
+  "p_up10": 45.2,
+  "p_dn10": 33.5,
+  "p_high": 85.2
+ }
+}
